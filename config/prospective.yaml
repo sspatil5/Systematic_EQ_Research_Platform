@@ -1,0 +1,29 @@
+experiment_id: SNM12M_V1_20260817
+created_at: "2026-08-17T12:00:00-04:00"
+timezone: America/New_York
+provider: REQUIRED_SECURITY_MASTER_NOT_CONFIGURED
+universe:
+  security_types: [COMMON_STOCK]
+  allowed_exchanges: [NYSE, NASDAQ, NYSE_AMERICAN]
+  minimum_price: 5.0
+  minimum_trailing_dollar_volume: 20000000.0
+  minimum_history_sessions: 252
+  sector_required: true
+portfolio:
+  size: 10
+  rebalance_frequency: weekly_last_session
+  initial_equity: 30000.0
+  whole_shares: true
+  long_only: true
+  leverage: false
+execution:
+  mode: next_valid_session_open
+  cost_bps: 5.0
+  missing_open_policy: SKIP_AND_RECORD
+cost_scenarios_bps: [0, 2, 5, 10, 20]
+signals:
+  primary: sector_neutral_momentum_12_1
+  challenger: combined_momentum_volatility
+checkpoints_months: [3, 6, 12]
+storage_root: data/prospective
+report_root: reports/phase5

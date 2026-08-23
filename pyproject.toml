@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "quant-trading-research"
+version = "0.1.0"
+description = "Leakage-aware cross-sectional equity research and paper-trading platform"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "numpy>=1.26,<3",
+  "pandas>=2.2,<4",
+  "pyarrow>=16,<30",
+  "pydantic>=2.7,<3",
+  "PyYAML>=6,<7",
+  "yfinance>=0.2.54,<2",
+]
+
+[project.optional-dependencies]
+research = [
+  "matplotlib>=3.8,<4",
+  "scikit-learn>=1.4,<2",
+  "scipy>=1.12,<2",
+  "statsmodels>=0.14,<1",
+  "xgboost>=2,<4",
+]
+dev = ["pytest>=8,<9", "pytest-cov>=5,<7", "ruff>=0.6,<1"]
+
+[project.scripts]
+quant-research = "quant_trading.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"

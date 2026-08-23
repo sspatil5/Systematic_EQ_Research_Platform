@@ -1,0 +1,113 @@
+data:
+  start: "2010-01-01"
+  end: null
+  auto_adjust: true
+  cache_dir: "data/cache"
+  processed_path: "data/processed/daily_panel.parquet"
+  refresh: false
+
+validation:
+  max_abs_daily_return: 0.80
+  max_missing_session_fraction: 0.10
+  allow_zero_volume: true
+
+features:
+  output_path: "data/processed/features.parquet"
+  enabled_groups:
+    - momentum
+    - mean_reversion
+    - volatility
+    - volume
+    - market
+  return_lookbacks: [1, 2, 5, 10, 20, 60, 120, 252]
+  moving_average_windows: [5, 10, 20, 50, 100, 200]
+  volatility_windows: [5, 10, 20, 60]
+  market_benchmark: "SPY"
+  target_horizons: [1, 5, 10, 20]
+  primary_target: "target_return_5d"
+  rank_target_horizons: [5]
+  excess_target_horizons: [5]
+  cross_sectional_features:
+    - ret_20d
+    - ret_60d
+    - realized_vol_20
+    - volume_zscore_20
+    - excess_market_return_1d
+  cross_sectional_transforms: [rank, zscore]
+  min_cross_sectional_observations: 2
+
+signal_research:
+  output_dir: "reports/phase3"
+  primary_target: "target_return_5d"
+  target_horizon: 5
+  horizons: [1, 5, 10, 20]
+  quantiles: 5
+  minimum_cross_section: 20
+  # Five-day labels overlap; lag 4 covers the induced dependence window.
+  hac_lags: 4
+  correlation_flag_threshold: 0.80
+  liquidity_feature: "avg_dollar_volume_20"
+  high_liquidity_fraction: 0.50
+  fdr_alpha: 0.05
+  bonferroni_alpha: 0.05
+  bootstrap:
+    enabled: false
+    iterations: 1000
+    block_length: 20
+    seed: 42
+  classification:
+    minimum_abs_ic: 0.02
+    promising_fdr: 0.10
+    strong_fdr: 0.05
+    minimum_positive_year_fraction: 0.60
+    maximum_daily_turnover: 0.75
+  candidates:
+    - {name: ret_1d, expected_direction: -1}
+    - {name: ret_5d, expected_direction: -1}
+    - {name: ret_20d, expected_direction: 1}
+    - {name: ret_60d, expected_direction: 1}
+    - {name: ret_120d, expected_direction: 1}
+    - {name: momentum_12_1, expected_direction: 1}
+    - {name: price_to_sma_20, expected_direction: 0}
+    - {name: price_to_sma_50, expected_direction: 0}
+    - {name: return_zscore_5, expected_direction: -1}
+    - {name: realized_vol_20, expected_direction: 0}
+    - {name: downside_vol_20, expected_direction: 0}
+    - {name: volume_zscore_20, expected_direction: 0}
+    - {name: relative_volume_20, expected_direction: 0}
+    - {name: beta_20, expected_direction: 0}
+    - {name: residual_return_1d, expected_direction: -1}
+    - {name: relative_momentum_20, expected_direction: 1}
+    - {name: relative_momentum_60, expected_direction: 1}
+
+# POST-PHASE-3 HYPOTHESES. Definitions were frozen before Phase 3.5 computation.
+alpha_research:
+  output_dir: "reports/phase3_5"
+  development_end: "2021-12-31"
+  confirmation_start: "2022-01-01"
+  target: "target_return_5d"
+  minimum_cross_section: 20
+  minimum_sector_size: 3
+  hac_lags: 4
+  fdr_alpha: 0.05
+  reversal_tail_fractions: [0.05, 0.10, 0.20]
+
+# Phase 4 research freeze: do not tune after observing backtest results.
+backtest:
+  output_dir: "reports/phase4"
+  initial_cash: 30000.0
+  primary_signal: "sector_neutral_momentum_12_1"
+  challenger_signal: "combined_momentum_volatility"
+  top_n: 10
+  rebalance_frequency: "weekly"
+  execution_mode: "next_open"
+  primary_cost_bps: 5.0
+  liquidity_floor: 20000000.0
+  fractional_shares: false
+  top_n_sensitivity: [5, 10, 20]
+  frequency_sensitivity: [daily, weekly, 10_sessions, monthly]
+  cost_sensitivity_bps: [0, 2, 5, 10, 20]
+  break_even_cost_bps: [0, 2, 5, 10, 20, 30, 40, 50]
+  delay_modes: [next_open, next_close, second_open]
+  random_simulations: 100
+  random_seed: 42

@@ -1,0 +1,22 @@
+strategy:
+  prediction_horizon_days: 5
+  rebalance_frequency: "W-FRI"
+  top_n: 10
+  weighting: "equal"
+  long_only: true
+
+execution:
+  signal_time: "close_t"
+  execution_time: "open_t_plus_1"
+  one_way_cost_bps: 5.0
+  live_trading_enabled: false
+
+risk:
+  # Illustrative research defaults only; these are not financial advice.
+  max_position_weight: 0.10
+  max_gross_exposure: 0.95
+  minimum_cash_reserve: 0.05
+  max_daily_turnover: 0.25
+  max_order_notional: 3000.0
+  max_strategy_drawdown: 0.15
+
