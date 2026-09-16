@@ -66,6 +66,27 @@ class ArtifactStore:
         }, MANIFEST_COLUMNS)
         return path
 
+    def register_file(self, path: str | Path, artifact_type: str, row_count: int,
+                      snapshot_date: str = "") -> None:
+        """Register an existing immutable source without copying or modifying it."""
+        path = Path(path).resolve()
+        filename = str(path.relative_to(self.root.resolve().parent.parent)) if path.is_relative_to(
+            self.root.resolve().parent.parent
+        ) else str(path)
+        manifest = pd.read_csv(self.manifest)
+        existing = manifest.loc[manifest["filename"].eq(filename)]
+        digest = sha256_file(path)
+        if not existing.empty:
+            if not existing.iloc[-1]["sha256"] == digest:
+                raise ValueError(f"Registered source hash changed: {path}")
+            return
+        self._append_csv(self.manifest, {
+            "experiment_id": self.experiment_id, "filename": filename,
+            "created_at": datetime.now(timezone.utc).isoformat(), "sha256": digest,
+            "row_count": row_count, "maximum_market_date": snapshot_date,
+            "artifact_type": artifact_type,
+        }, MANIFEST_COLUMNS)
+
     def audit(self, event_type, signal_date, command, status, files=(), warnings="", errors=""):
         self._append_csv(self.audit_log, {
             "timestamp": datetime.now(timezone.utc).isoformat(), "experiment_id": self.experiment_id,
@@ -78,7 +99,11 @@ class ArtifactStore:
         manifest = pd.read_csv(self.manifest)
         rows = []
         for row in manifest.itertuples(index=False):
-            path = self.root / row.filename
+            candidate = Path(row.filename)
+            path = candidate if candidate.is_absolute() else (
+                self.root.parent.parent / candidate if str(candidate).startswith("src/")
+                else self.root / candidate
+            )
             actual = sha256_file(path) if path.exists() else "MISSING"
             rows.append({"filename": row.filename, "expected_sha256": row.sha256,
                          "actual_sha256": actual, "valid": actual == row.sha256})

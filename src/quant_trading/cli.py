@@ -22,6 +22,7 @@ from quant_trading.prospective.operations import (
     audit_command, signal_command, unavailable_data_command, verify_command,
 )
 from quant_trading.prospective.report import write_operational_report
+from quant_trading.prospective.bloomberg import import_bloomberg
 
 
 def download_data(config_path: str, universe_name: str) -> None:
@@ -154,6 +155,10 @@ def main() -> None:
         "run-realistic-backtest", help="Run frozen Phase 4 realistic backtests"
     )
     backtest.add_argument("--config", default="config/research.yaml")
+    bloomberg = subparsers.add_parser("bloomberg-import", help="Import Bloomberg XLSX security master")
+    bloomberg.add_argument("--snapshot-date", required=True)
+    bloomberg.add_argument("--input-dir", required=True)
+    bloomberg.add_argument("--config", default="config/prospective.yaml")
     for name, help_text in (
         ("prospective-signal", "Create an immutable after-close Stage A event"),
         ("prospective-execute", "Capture a frozen shadow execution event"),
@@ -175,6 +180,9 @@ def main() -> None:
         expand_alpha_research(args.config)
     elif args.command == "run-realistic-backtest":
         run_realistic_backtest(args.config)
+    elif args.command == "bloomberg-import":
+        result = import_bloomberg(args.snapshot_date, args.input_dir, args.config)
+        print(json.dumps(result.summary, indent=2, default=str))
     elif args.command == "prospective-signal":
         signal_command(args.config)
     elif args.command in ("prospective-execute", "prospective-mark"):
