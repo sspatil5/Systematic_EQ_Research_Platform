@@ -1,5 +1,20 @@
 # Quantitative Trading Research Platform
 
+The local **AXIOM quantitative research dashboard** adds six artifact-backed research screens,
+a FastAPI integration, and isolated background run controls. See [dashboard setup and architecture](docs/dashboard.md)
+for the complete implementation, source inventory, filter semantics, validation, and limitations.
+
+```bash
+source .venv/bin/activate
+python -m pip install -e ".[dashboard,research,dev]"
+cd dashboard
+npm ci
+cd ..
+python scripts/dashboard.py
+```
+
+Open http://127.0.0.1:5173. Existing research results load without rerunning experiments.
+
 A leakage-aware Python research platform for cross-sectional U.S. equity ranking. The goal is
 credible systematic research and paper/shadow trading—not an impressive-looking in-sample
 backtest. Live order submission is intentionally out of scope.
